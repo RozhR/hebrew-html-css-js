@@ -46,6 +46,7 @@ let correctAnswers = 0;
 let currentCorrect = "";
 let savedPage = "";
 let currentLevelName = "";
+let currentLevel = 1;
 let currentCategory = "verbs";
 let timeLeft = 15;
 let timerId = null;
@@ -56,6 +57,8 @@ function startTest() {
 
     const title = document.getElementById("levelTitle");
     currentLevelName = title ? title.innerText.trim() : "Неизвестный уровень";
+    const params = new URLSearchParams(window.location.search);
+    currentLevel = Number(params.get("level")) || 1;
 
     const cards = Array.from(document.querySelectorAll(".card"));
     if (!cards.length) {
@@ -207,19 +210,29 @@ function restorePage() {
 
 /* =================== СТАТИСТИКА =================== */
 function saveStatistics(percent, correct, total) {
-    let stats = JSON.parse(localStorage.getItem("testStats") || "{}");
+    const stats = JSON.parse(
+        localStorage.getItem("testStats") || "{}"
+    );
 
-    if (!stats[currentLevelName]) stats[currentLevelName] = [];
+    if (!stats[currentCategory]) {
+        stats[currentCategory] = {};
+    }
 
-    stats[currentLevelName].push({
+    if (!stats[currentCategory][currentLevel]) {
+        stats[currentCategory][currentLevel] = [];
+    }
+
+    stats[currentCategory][currentLevel].push({
         percent,
         correct,
         total,
-        category: currentCategory,
         date: new Date().toLocaleString()
     });
 
-    localStorage.setItem("testStats", JSON.stringify(stats));
+    localStorage.setItem(
+        "testStats",
+        JSON.stringify(stats)
+    );
 }
 
 function loadStatistics() {
@@ -229,36 +242,78 @@ function loadStatistics() {
         adverbs: document.getElementById("adverbsColumn")
     };
 
-    for (const col in columns) {
-        if (columns[col]) {
-            columns[col].innerHTML = `<h2>${
-                col === 'verbs' ? 'Глаголы' :
-                    col === 'adjectives' ? 'Прилагательные' : 'Наречия'
-            }</h2>`;
+    const categoryNames = {
+        verbs: "Глаголы",
+        adjectives: "Прилагательные",
+        adverbs: "Наречия"
+    };
+
+    for (const category in columns) {
+        if (columns[category]) {
+            columns[category].innerHTML =
+                `<h2>${categoryNames[category]}</h2>`;
         }
     }
 
-    const stats = JSON.parse(localStorage.getItem("testStats") || "{}");
+    const stats = JSON.parse(
+        localStorage.getItem("testStats") || "{}"
+    );
 
-    for (const levelName in stats) {
-        const attempts = stats[levelName];
-        attempts.slice().reverse().forEach(a => {
-            const column = columns[a.category] || columns.verbs;
-            let color = a.percent >= 80 ? "#48bb78" : a.percent >= 50 ? "#f6e05e" : "#f56565";
+    for (const category in stats) {
+        const column = columns[category];
 
-            column.innerHTML += `
-    <div class="stat-card">
-        <div class="level-name">${levelName}</div>
-        <div class="percent">${a.percent}% (${a.correct}/${a.total})</div>
-        <div class="stat-progress">
-            <div class="stat-progress-fill"
-                 style="width:${a.percent}%; background:${color};">
-            </div>
-        </div>
-        <div class="details">Дата: ${a.date}</div>
-    </div>
-`;
-        });
+        if (!column) continue;
+
+        const levels = stats[category];
+
+        for (const level in levels) {
+            const attempts = levels[level];
+
+            attempts
+                .slice()
+                .reverse()
+                .forEach(attempt => {
+
+                    let color;
+
+                    if (attempt.percent >= 85) {
+                        color = "#48bb78";
+                    } else if (attempt.percent >= 50) {
+                        color = "#f6e05e";
+                    } else {
+                        color = "#f56565";
+                    }
+
+                    column.innerHTML += `
+                        <div class="stat-card">
+
+                            <div class="level-name">
+                                Уровень ${level}
+                            </div>
+
+                            <div class="percent">
+                                ${attempt.percent}%
+                                (${attempt.correct}/${attempt.total})
+                            </div>
+
+                            <div class="stat-progress">
+                                <div
+                                    class="stat-progress-fill"
+                                    style="
+                                        width:${attempt.percent}%;
+                                        background:${color};
+                                    ">
+                                </div>
+                            </div>
+
+                            <div class="details">
+                                Дата: ${attempt.date}
+                            </div>
+
+                        </div>
+                    `;
+                });
+        }
     }
 }
 
@@ -275,3 +330,27 @@ document.addEventListener("DOMContentLoaded", () => {
     const testBtn = document.querySelector(".functions button:nth-child(2)");
     if (testBtn) testBtn.addEventListener("click", startTest);
 });
+
+function loadLevel(data) {
+    const params = new URLSearchParams(window.location.search);
+
+    const level = Number(params.get("level")) || 1;
+
+    const cardsData = data[level];
+
+    const levelTitle = document.getElementById("levelTitle");
+    const cardContainer = document.getElementById("cardContainer");
+
+    if (levelTitle) {
+        levelTitle.innerText = `Уровень ${level}`;
+    }
+
+    if (!cardContainer) return;
+
+    if (cardsData) {
+        generateCards("cardContainer", cardsData);
+    } else {
+        cardContainer.innerHTML =
+            "<h2>Этот уровень пока не заполнен</h2>";
+    }
+}
