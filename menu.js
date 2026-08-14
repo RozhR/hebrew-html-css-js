@@ -18,18 +18,24 @@ function loadMenu() {
             <li class="dropdown">
                 <a href="javascript:void(0)">Глаголы ▾</a>
                 <ul class="styled-dropdown dropdown-menu">
-                    ${generateLevels('verbs_level', 21)}
+                    ${generateLevels('verbs-level-', 21)}
                 </ul>
             </li>
 
             <li class="dropdown">
                 <a href="javascript:void(0)">Прилагательные ▾</a>
                 <ul class="styled-dropdown dropdown-menu">
-                    ${generateLevels('adjectives', 21)}
+                    ${generateLevels('adjectives-level-', 21)}
+                </ul>
+            </li>
+            
+            <li class="dropdown">
+                <a href="javascript:void(0)">Наречия ▾</a>
+                <ul class="styled-dropdown dropdown-menu">
+                    ${generateLevels('adverbs-level-', 21)}
                 </ul>
             </li>
 
-            <li><a href="adverbs.html">Наречия</a></li>
             <li><a href="grammar.html">Грамматика</a></li>
             <li><a href="Stat.html">Статистика</a></li>
         </ul>
