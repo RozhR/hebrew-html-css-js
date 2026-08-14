@@ -336,16 +336,38 @@ function loadLevel(data) {
 
     const level = Number(params.get("level")) || 1;
 
-    const cardsData = data[level];
+    const category = document.body.dataset.category;
 
     const levelTitle = document.getElementById("levelTitle");
     const cardContainer = document.getElementById("cardContainer");
 
+    if (!cardContainer) return;
+
+    if (!isLevelUnlocked(category, level)) {
+        if (levelTitle) {
+            levelTitle.innerText = `Уровень ${level}`;
+        }
+
+        cardContainer.innerHTML = `
+            <div class="locked-level">
+                <h2>🔒 Уровень заблокирован</h2>
+
+                <p>
+                    Для открытия уровня ${level}
+                    необходимо пройти уровень ${level - 1}
+                    минимум на 85%.
+                </p>
+            </div>
+        `;
+
+        return;
+    }
+
+    const cardsData = data[level];
+
     if (levelTitle) {
         levelTitle.innerText = `Уровень ${level}`;
     }
-
-    if (!cardContainer) return;
 
     if (cardsData) {
         generateCards("cardContainer", cardsData);
@@ -353,4 +375,21 @@ function loadLevel(data) {
         cardContainer.innerHTML =
             "<h2>Этот уровень пока не заполнен</h2>";
     }
+}
+
+function isLevelUnlocked(category, level) {
+    if (level === 1) {
+        return true;
+    }
+
+    const stats = JSON.parse(
+        localStorage.getItem("testStats") || "{}"
+    );
+
+    const previousLevel = level - 1;
+
+    const previousAttempts =
+        stats[category]?.[previousLevel] || [];
+
+    return previousAttempts.some(attempt => attempt.percent >= 85);
 }

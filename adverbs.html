@@ -1,10 +1,47 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Наречия</title>
+
+    <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+
+<body data-category="adverbs">
+
+<nav class="navbar"></nav>
+
+<div id="mainContent">
+
+    <div class="functions">
+        <button class="styled-btn" onclick="shuffleCards()">
+            Перемешать
+        </button>
+
+        <button class="styled-btn" id="testBtn">
+            Тестирование
+        </button>
+    </div>
+
+    <h2 id="levelTitle"></h2>
+
+    <div
+            class="card-container"
+            id="cardContainer">
+    </div>
+
+</div>
+
+<script src="js/script.js"></script>
+<script src="js/menu.js"></script>
+<script src="js/data/adverbs.js"></script>
+
+<script>
+    loadMenu();
+    loadLevel(verbsData);
+</script>
 
 </body>
 </html>

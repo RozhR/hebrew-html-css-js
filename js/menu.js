@@ -3,17 +3,32 @@ function loadMenu() {
 
     if (!nav) return;
 
-    const generateLevels = (page, count) => {
+    const generateLevels = (page, category, count) => {
         let html = "";
 
         for (let i = 1; i <= count; i++) {
-            html += `
+            const unlocked = isLevelUnlocked(category, i);
+
+            if (unlocked) {
+                html += `
                 <li>
                     <a href="${page}?level=${i}">
                         Уровень ${i}
                     </a>
                 </li>
             `;
+            } else {
+                html += `
+                <li>
+                    <a
+                        href="javascript:void(0)"
+                        class="locked-link"
+                    >
+                        🔒 Уровень ${i}
+                    </a>
+                </li>
+            `;
+            }
         }
 
         return html;
@@ -34,7 +49,7 @@ function loadMenu() {
                 </a>
 
                 <ul class="styled-dropdown dropdown-menu">
-                    ${generateLevels("verbs.html", 21)}
+                    ${generateLevels("verbs.html", "verbs",21)}
                 </ul>
             </li>
 
@@ -44,14 +59,17 @@ function loadMenu() {
                 </a>
 
                 <ul class="styled-dropdown dropdown-menu">
-                    ${generateLevels("adjectives.html", 21)}
+                    ${generateLevels("adjectives.html", "adjectives", 21)}
                 </ul>
             </li>
 
-            <li>
-                <a href="adverbs.html">
-                    Наречия
+            <li class="dropdown">
+                <a href="javascript:void(0)">
+                    Наречия ▾
                 </a>
+                <ul class="styled-dropdown dropdown-menu">
+                    ${generateLevels("adverbs.html", "adverbs", 21)}
+                </ul>
             </li>
 
             <li>

@@ -12,7 +12,8 @@
 
 <h1 style="text-align:center; margin-top:20px;">Статистика</h1>
 
-<div id="statsContainer" style="width:90%; margin:20px auto; display:flex; gap:20px; justify-content:center; flex-wrap:wrap;">
+<div id="statsContainer"
+     style="width:90%; margin:20px auto; display:flex; gap:20px; justify-content:center; flex-wrap:wrap;">
     <div class="stats-column" id="verbsColumn" style="flex:1; min-width:250px;">
         <h2>Глаголы</h2>
     </div>
@@ -28,12 +29,10 @@
     <button class="styled-btn" onclick="clearStatistics()">Очистить статистику</button>
 </div>
 
+<script src="js/script.js"></script>
 <script src="js/menu.js"></script>
 <script>
     loadMenu();
-</script>
-<script src="js/script.js"></script>
-<script>
     loadStatistics();
 </script>
 </body>
