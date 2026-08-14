@@ -1,0 +1,335 @@
+/* ===== ОБЩИЕ СТИЛИ ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #2d3748;
+    color: #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+h1 {
+    font-size: 5rem;
+    margin-top: 10%;
+    text-align: center;
+    color: #805ad5;
+}
+
+h2 {
+    font-size: 2rem;
+    margin-top: 2%;
+    color: #805ad5;
+    text-align: center;
+}
+
+/* ===== НАВИГАЦИЯ ===== */
+.navbar {
+    width: 100%;
+    background: #1f2733;
+    padding: 12px 0;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    position: relative;
+    z-index: 100;
+    margin-bottom: 25px;
+}
+
+.nav-list {
+    list-style: none;
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.nav-list li {
+    position: relative;
+}
+
+.nav-list a {
+    color: #e2e8f0;
+    text-decoration: none;
+    font-size: 18px;
+    padding: 8px 12px;
+    transition: color 0.3s;
+    cursor: pointer;
+}
+
+.nav-list a:hover {
+    color: #9f7aea;
+}
+
+/* ===== DROPDOWN ===== */
+.dropdown-menu {
+    position: absolute;
+    top: 35px;
+    left: 0;
+    min-width: 180px;
+    padding: 0;
+    border-radius: 0;
+    z-index: 200;
+}
+
+.styled-dropdown {
+    background: linear-gradient(135deg, #4a5568, #2d3748);
+    border-radius: 12px;
+    padding: 10px 0;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.45);
+    transform-origin: top;
+    transform: scaleY(0);
+    opacity: 0;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+    overflow: hidden;
+    pointer-events: auto;
+}
+
+.dropdown:hover .styled-dropdown {
+    transform: scaleY(1);
+    opacity: 1;
+}
+
+.styled-dropdown li a {
+    display: block;
+    padding: 10px 15px;
+    font-size: 17px;
+    color: #f7fafc;
+    transition: background 0.25s, color 0.25s;
+    cursor: pointer;
+}
+
+.styled-dropdown li a:hover {
+    background: rgba(255,255,255,0.08);
+    color: #d6bcfa;
+}
+
+/* ===== КАРТОЧКИ ===== */
+.card-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.card {
+    width: 220px;
+    height: 160px;
+    perspective: 1000px;
+    cursor: grab;
+    transition: all 0.4s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px) scale(1.03);
+}
+
+.card-inner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.6s;
+}
+
+.card.flipped .card-inner {
+    transform: rotateY(180deg);
+}
+
+.card-front,
+.card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    padding: 10px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+}
+
+.card-front {
+    background: linear-gradient(135deg, #4a5568, #2d3748);
+    color: #f7fafc;
+}
+
+.card-back {
+    background: linear-gradient(135deg, #9f7aea, #805ad5);
+    color: white;
+    transform: rotateY(180deg);
+}
+
+/* ===== КНОПКИ ===== */
+.styled-btn {
+    background: linear-gradient(135deg, #805ad5, #9f7aea);
+    border: none;
+    padding: 12px 25px;
+    font-size: 20px;
+    border-radius: 10px;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.25s, box-shadow 0.25s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+.styled-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+}
+
+.stat-card {
+    background: linear-gradient(135deg, #4a5568, #2d3748);
+    border-radius: 12px;
+    padding: 15px 20px;
+    margin: 10px auto;
+    max-width: 500px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.5);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+}
+
+.stat-card .percent {
+    font-size: 22px;
+    color: #9f7aea;
+    font-weight: bold;
+    text-align: center;
+}
+
+.stat-card .details {
+    font-size: 16px;
+    color: #cbd5e1;
+}
+
+.level-title {
+    font-size: 1.8rem;
+    color: #9f7aea;
+    margin-top: 30px;
+    text-align: center;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+.stats-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.stat-card .level-name {
+    color: #9f7aea;
+    text-align: center;
+}
+.test-area {
+    width: 100%;
+    max-width: 1000px;
+    margin: 30px auto;
+    text-align: center;
+}
+
+.test-area p {
+    margin: 20px 0;
+    font-size: 18px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 20px;
+    background: #4a5568;
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 15px 0;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(135deg, #805ad5, #9f7aea);
+    border-radius: 12px;
+    transition: width 0.3s ease;
+}
+
+.stat-progress {
+    width: 100%;
+    height: 16px;
+    background: #4a5568;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.stat-progress-fill {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+
+
+
+.timer {
+    font-size: 24px;
+    color: #f7fafc;
+    margin-bottom: 15px;
+}
+/* Контейнер с вариантами ответов */
+.answers-container {
+    display: flex;
+    justify-content: center; /* выравнивание по центру */
+    gap: 15px;               /* расстояние между кнопками */
+    flex-wrap: wrap;          /* перенос на новую строку при нехватке места */
+    margin-top: 20px;
+}
+
+/* Блок кнопок функций */
+.functions {
+    display: flex;
+    justify-content: center; /* выравнивание по центру */
+    gap: 20px;              /* расстояние между кнопками */
+    margin: 20px 0;         /* отступ сверху и снизу */
+}
+
+.correct {
+    color: #48bb78; /* зеленый */
+    font-size: 24px;
+    font-weight: bold;
+    display: block;
+    margin-top: 20px; /* отступ сверху */
+    text-align: center;
+}
+
+.wrong {
+    color: #f56565; /* красный */
+    font-size: 24px;
+    font-weight: bold;
+    display: block;
+    margin-top: 20px;
+    text-align: center;
+}
+
+#result {
+    text-align: center; /* центрируем всю область результата */
+    margin-top: 15px;
+}
+.answers-container {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: nowrap;      /* строго в одну строку */
+    width: 100%;            /* ← ВАЖНО */
+    margin-top: 20px;
+}
+
+.answers-container button {
+    flex: 1 1 auto;         /* кнопки растягиваются */
+    white-space: nowrap;
+    padding: 12px 20px;
+    font-size: 18px;
+}

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Verbs15</title>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar"></nav>
+
+<div class="functions">
+    <button class="styled-btn" onclick="shuffleCards()">Перемешать</button>
+    <button class="styled-btn">Тестирование</button>
+</div>
+
+<h2 id="levelTitle">Уровень 15</h2>
+
+<div class="card-container" id="cardContainer"></div>
+
+<script src="menu.js"></script>
+<script>loadMenu();</script>
+<script src="script.js"></script>
+
+<script>
+    /* =================== ДАННЫЕ КАРТОЧЕК =================== */
+    const cardsData = [
+        {hebrew: "להתפרע", russian: "буйствовать"},
+        {hebrew: "להתפשר", russian: "идти на компромисс"},
+        {hebrew: "להתפרש", russian: "распространяться, растягиваться"},
+        {hebrew: "להתבלט", russian: "выделяться, быть заметным"},
+        {hebrew: "להתיישב", russian: "селиться, устраиваться"},
+        {hebrew: "להטיל", russian: "бросать, накладывать"},
+        {hebrew: "להיאבק", russian: "бороться"},
+        {hebrew: "להיבדל", russian: "отделяться"},
+        {hebrew: "להיבחן", russian: "проверяться, быть проверенным"},
+        {hebrew: "להיבחר", russian: "быть выбранным"},
+        {hebrew: "להיבלע", russian: "быть поглощённым"},
+        {hebrew: "להיבנות", russian: "строиться"},
+        {hebrew: "להיגמל", russian: "бросать (привычку)"},
+        {hebrew: "להיגמר", russian: "заканчиваться"},
+        {hebrew: "להיגרר", russian: "быть втянутым"},
+        {hebrew: "להידבק", russian: "заразиться, приклеиться"},
+        {hebrew: "להידחף", russian: "проталкиваться"},
+        {hebrew: "להידחק", russian: "быть толкнутым"},
+        {hebrew: "להידמות", russian: "походить"},
+        {hebrew: "להידרש", russian: "требоваться"}
+    ];
+
+    /* =================== ФУНКЦИЯ ДЛЯ ГЕНЕРАЦИИ КАРТОЧЕК =================== */
+    function generateCards(containerId, data) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = ''; // очищаем перед генерацией
+
+        data.forEach(card => {
+            const cardEl = document.createElement('div');
+            cardEl.className = 'card';
+            cardEl.innerHTML = `
+            <div class="card-inner">
+                <div class="card-front">${card.hebrew}</div>
+                <div class="card-back">${card.russian}</div>
+            </div>
+        `;
+            container.appendChild(cardEl);
+        });
+
+        // Добавляем обработчик переворота
+        document.querySelectorAll(".card").forEach(card => {
+            card.addEventListener("click", () => card.classList.toggle("flipped"));
+        });
+    }
+
+    /* =================== ИНИЦИАЛИЗАЦИЯ =================== */
+    document.addEventListener("DOMContentLoaded", () => {
+        generateCards('cardContainer', cardsData);
+    });
+</script>
+
+</body>
+</html>

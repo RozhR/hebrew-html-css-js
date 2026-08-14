@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Verbs6</title>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar"></nav>
+
+<div class="functions">
+    <button class="styled-btn" onclick="shuffleCards()">Перемешать</button>
+    <button class="styled-btn">Тестирование</button>
+</div>
+
+<h2 id="levelTitle">Уровень 6</h2>
+
+<div class="card-container" id="cardContainer"></div>
+
+<script src="menu.js"></script>
+<script>loadMenu();</script>
+<script src="script.js"></script>
+
+<script>
+    /* =================== ДАННЫЕ КАРТОЧЕК =================== */
+    const cardsData = [
+        {hebrew: "לנצח", russian: "побеждать"},
+        {hebrew: "לנקות", russian: "очищать"},
+        {hebrew: "לנשום", russian: "дышать"},
+        {hebrew: "לנשק", russian: "целовать"},
+        {hebrew: "לעמוד", russian: "стоять"},
+        {hebrew: "לעקוב", russian: "следить, отслеживать"},
+        {hebrew: "לפגוע", russian: "вредить, задевать"},
+        {hebrew: "לפסוע", russian: "шагать"},
+        {hebrew: "לפרוץ", russian: "пробивать, взламывать"},
+        {hebrew: "לפתח", russian: "развивать"},
+        {hebrew: "לצייר", russian: "рисовать"},
+        {hebrew: "לצעוק", russian: "кричать"},
+        {hebrew: "לקוות", russian: "надеяться"},
+        {hebrew: "לקלקל", russian: "портить"},
+        {hebrew: "לקפל", russian: "складывать"},
+        {hebrew: "לקצר", russian: "сокращать"},
+        {hebrew: "לתקוות", russian: "надеяться"},
+        {hebrew: "לתרגם", russian: "переводить"},
+        {hebrew: "לתרגש", russian: "переживать"},
+        {hebrew: "להאכיל", russian: "кормить"}
+    ];
+
+    /* =================== ФУНКЦИЯ ДЛЯ ГЕНЕРАЦИИ КАРТОЧЕК =================== */
+    function generateCards(containerId, data) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = ''; // очищаем перед генерацией
+
+        data.forEach(card => {
+            const cardEl = document.createElement('div');
+            cardEl.className = 'card';
+            cardEl.innerHTML = `
+            <div class="card-inner">
+                <div class="card-front">${card.hebrew}</div>
+                <div class="card-back">${card.russian}</div>
+            </div>
+        `;
+            container.appendChild(cardEl);
+        });
+
+        // Добавляем обработчик переворота
+        document.querySelectorAll(".card").forEach(card => {
+            card.addEventListener("click", () => card.classList.toggle("flipped"));
+        });
+    }
+
+    /* =================== ИНИЦИАЛИЗАЦИЯ =================== */
+    document.addEventListener("DOMContentLoaded", () => {
+        generateCards('cardContainer', cardsData);
+    });
+</script>
+
+</body>
+</html>
