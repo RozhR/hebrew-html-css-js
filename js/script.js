@@ -25,7 +25,6 @@ function shuffleArray(array) {
 
     for (let i = copy.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-
         [copy[i], copy[j]] = [copy[j], copy[i]];
     }
 
@@ -51,7 +50,6 @@ function generateCards(containerId, data) {
 
         cardEl.innerHTML = `
             <div class="card-inner">
-
                 <div class="card-front">
                     ${card.hebrew}
                 </div>
@@ -59,7 +57,6 @@ function generateCards(containerId, data) {
                 <div class="card-back">
                     ${card.russian}
                 </div>
-
             </div>
         `;
 
@@ -104,18 +101,30 @@ function isLevelUnlocked(category, level) {
         return true;
     }
 
-    const stats = JSON.parse(
-        localStorage.getItem("testStats") || "{}"
+    const unlockedLevels = JSON.parse(
+        localStorage.getItem("unlockedLevels") || "{}"
     );
 
-    const previousLevel = level - 1;
+    return unlockedLevels[category]?.includes(level) || false;
+}
 
-    const previousAttempts =
-        stats[category]?.[previousLevel] || [];
+function unlockLevel(category, level) {
+    const unlockedLevels = JSON.parse(
+        localStorage.getItem("unlockedLevels") || "{}"
+    );
 
-    return previousAttempts.some(attempt => {
-        return attempt.percent >= 85;
-    });
+    if (!unlockedLevels[category]) {
+        unlockedLevels[category] = [1];
+    }
+
+    if (!unlockedLevels[category].includes(level)) {
+        unlockedLevels[category].push(level);
+    }
+
+    localStorage.setItem(
+        "unlockedLevels",
+        JSON.stringify(unlockedLevels)
+    );
 }
 
 
@@ -124,32 +133,22 @@ function isLevelUnlocked(category, level) {
    ========================================================= */
 
 function loadLevel(data) {
-    const params =
-        new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(window.location.search);
+    const level = Number(params.get("level")) || 1;
+    const category = document.body.dataset.category;
 
-    const level =
-        Number(params.get("level")) || 1;
-
-    const category =
-        document.body.dataset.category;
-
-    const levelTitle =
-        document.getElementById("levelTitle");
-
-    const cardContainer =
-        document.getElementById("cardContainer");
+    const levelTitle = document.getElementById("levelTitle");
+    const cardContainer = document.getElementById("cardContainer");
 
     if (!cardContainer) return;
 
     if (levelTitle) {
-        levelTitle.innerText =
-            `Уровень ${level}`;
+        levelTitle.innerText = `Уровень ${level}`;
     }
 
     if (!isLevelUnlocked(category, level)) {
         cardContainer.innerHTML = `
             <div class="locked-level">
-
                 <h2>
                     🔒 Уровень заблокирован
                 </h2>
@@ -160,21 +159,16 @@ function loadLevel(data) {
                     ${level - 1}
                     минимум на 85%.
                 </p>
-
             </div>
         `;
 
         return;
     }
 
-    const cardsData =
-        data[level];
+    const cardsData = data[level];
 
     if (cardsData) {
-        generateCards(
-            "cardContainer",
-            cardsData
-        );
+        generateCards("cardContainer", cardsData);
     } else {
         cardContainer.innerHTML = `
             <h2>
@@ -190,61 +184,48 @@ function loadLevel(data) {
    ========================================================= */
 
 function startTest() {
-    const mainContent =
-        document.getElementById("mainContent");
+    const mainContent = document.getElementById("mainContent");
 
     if (!mainContent) return;
 
-    const title =
-        document.getElementById("levelTitle");
+    const title = document.getElementById("levelTitle");
 
-    testState.currentLevelName =
-        title
-            ? title.innerText.trim()
-            : "Неизвестный уровень";
+    testState.currentLevelName = title
+        ? title.innerText.trim()
+        : "Неизвестный уровень";
 
-    const params =
-        new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(window.location.search);
 
-    testState.currentLevel =
-        Number(params.get("level")) || 1;
+    testState.currentLevel = Number(params.get("level")) || 1;
+    testState.currentCategory = document.body.dataset.category || "verbs";
 
-    testState.currentCategory =
-        document.body.dataset.category || "verbs";
-
-    const cards =
-        Array.from(
-            document.querySelectorAll(".card")
-        );
+    const cards = Array.from(
+        document.querySelectorAll(".card")
+    );
 
     if (!cards.length) {
         alert("Нет карточек для тестирования");
         return;
     }
 
-    testState.data =
-        cards.map(card => ({
-            hebrew:
-                card
-                    .querySelector(".card-front")
-                    .innerText
-                    .trim(),
+    testState.data = cards.map(card => ({
+        hebrew: card
+            .querySelector(".card-front")
+            .innerText
+            .trim(),
 
-            russian:
-                card
-                    .querySelector(".card-back")
-                    .innerText
-                    .trim()
-        }));
+        russian: card
+            .querySelector(".card-back")
+            .innerText
+            .trim()
+    }));
 
-    testState.savedPage =
-        mainContent.innerHTML;
+    testState.savedPage = mainContent.innerHTML;
 
     testState.index = 0;
     testState.correctAnswers = 0;
 
     renderTestArea();
-
     generateQuestion();
 }
 
@@ -254,8 +235,7 @@ function startTest() {
    ========================================================= */
 
 function restartTest() {
-    const mainContent =
-        document.getElementById("mainContent");
+    const mainContent = document.getElementById("mainContent");
 
     if (!mainContent) return;
 
@@ -263,7 +243,6 @@ function restartTest() {
     testState.correctAnswers = 0;
 
     renderTestArea();
-
     generateQuestion();
 }
 
@@ -273,17 +252,12 @@ function restartTest() {
    ========================================================= */
 
 function renderTestArea() {
-    const mainContent =
-        document.getElementById("mainContent");
+    const mainContent = document.getElementById("mainContent");
 
     if (!mainContent) return;
 
     mainContent.innerHTML = `
-        <div
-            id="testArea"
-            class="test-area"
-        >
-
+        <div id="testArea" class="test-area">
             <div
                 id="progressText"
                 class="progress-text"
@@ -293,12 +267,10 @@ function renderTestArea() {
                 id="progressBar"
                 class="progress-bar"
             >
-
                 <div
                     id="progressFill"
                     class="progress-fill"
                 ></div>
-
             </div>
 
             <div
@@ -312,7 +284,6 @@ function renderTestArea() {
                 id="questionContainer"
                 class="question-container"
             ></div>
-
         </div>
     `;
 }
@@ -323,54 +294,27 @@ function renderTestArea() {
    ========================================================= */
 
 function generateQuestion() {
-    if (
-        testState.index >=
-        testState.data.length
-    ) {
-        clearInterval(
-            testState.timerId
-        );
-
+    if (testState.index >= testState.data.length) {
+        clearInterval(testState.timerId);
         finishTest();
-
         return;
     }
 
-    const question =
-        testState.data[
-            testState.index
-            ];
+    const question = testState.data[testState.index];
 
-    testState.currentCorrect =
-        question.russian;
+    testState.currentCorrect = question.russian;
 
-    const progressText =
-        document.getElementById(
-            "progressText"
-        );
-
-    const progressFill =
-        document.getElementById(
-            "progressFill"
-        );
+    const progressText = document.getElementById("progressText");
+    const progressFill = document.getElementById("progressFill");
 
     if (progressText) {
         progressText.innerText =
-            `Вопрос ${
-                testState.index + 1
-            } из ${
-                testState.data.length
-            }`;
+            `Вопрос ${testState.index + 1} из ${testState.data.length}`;
     }
 
     if (progressFill) {
         progressFill.style.width =
-            `${
-                (
-                    testState.index /
-                    testState.data.length
-                ) * 100
-            }%`;
+            `${(testState.index / testState.data.length) * 100}%`;
     }
 
     let answers = [
@@ -379,38 +323,24 @@ function generateQuestion() {
 
     while (
         answers.length < 4 &&
-        answers.length <
-        testState.data.length
+        answers.length < testState.data.length
         ) {
         const randomItem =
             testState.data[
-                Math.floor(
-                    Math.random() *
-                    testState.data.length
-                )
+                Math.floor(Math.random() * testState.data.length)
                 ];
 
-        const randomAnswer =
-            randomItem.russian;
+        const randomAnswer = randomItem.russian;
 
-        if (
-            !answers.includes(
-                randomAnswer
-            )
-        ) {
-            answers.push(
-                randomAnswer
-            );
+        if (!answers.includes(randomAnswer)) {
+            answers.push(randomAnswer);
         }
     }
 
-    answers =
-        shuffleArray(answers);
+    answers = shuffleArray(answers);
 
     const questionContainer =
-        document.getElementById(
-            "questionContainer"
-        );
+        document.getElementById("questionContainer");
 
     if (!questionContainer) return;
 
@@ -420,7 +350,6 @@ function generateQuestion() {
         </h1>
 
         <div class="answers-container">
-
             ${answers
         .map(answer => `
                     <button
@@ -431,7 +360,6 @@ function generateQuestion() {
                     </button>
                 `)
         .join("")}
-
         </div>
 
         <div
@@ -441,23 +369,15 @@ function generateQuestion() {
     `;
 
     const answerButtons =
-        document.querySelectorAll(
-            ".answer-btn"
-        );
+        document.querySelectorAll(".answer-btn");
 
     answerButtons.forEach(button => {
-        button.addEventListener(
-            "click",
-            () => {
-                checkAnswer(
-                    button.dataset.answer
-                );
-            }
-        );
+        button.addEventListener("click", () => {
+            checkAnswer(button.dataset.answer);
+        });
     });
 
     animateQuestion();
-
     startTimer();
 }
 
@@ -468,24 +388,16 @@ function generateQuestion() {
 
 function animateQuestion() {
     const questionContainer =
-        document.getElementById(
-            "questionContainer"
-        );
+        document.getElementById("questionContainer");
 
     if (!questionContainer) return;
 
-    questionContainer.style.opacity =
-        "0";
-
-    questionContainer.style.transform =
-        "translateY(20px)";
+    questionContainer.style.opacity = "0";
+    questionContainer.style.transform = "translateY(20px)";
 
     setTimeout(() => {
-        questionContainer.style.opacity =
-            "1";
-
-        questionContainer.style.transform =
-            "translateY(0)";
+        questionContainer.style.opacity = "1";
+        questionContainer.style.transform = "translateY(0)";
     }, 30);
 }
 
@@ -497,39 +409,24 @@ function animateQuestion() {
 function startTimer() {
     testState.timeLeft = 15;
 
-    const timer =
-        document.getElementById(
-            "timer"
-        );
+    const timer = document.getElementById("timer");
 
     if (!timer) return;
 
-    timer.innerText =
-        `⏳ ${testState.timeLeft}`;
+    timer.innerText = `⏳ ${testState.timeLeft}`;
 
-    clearInterval(
-        testState.timerId
-    );
+    clearInterval(testState.timerId);
 
-    testState.timerId =
-        setInterval(() => {
+    testState.timerId = setInterval(() => {
+        testState.timeLeft--;
 
-            testState.timeLeft--;
+        timer.innerText = `⏳ ${testState.timeLeft}`;
 
-            timer.innerText =
-                `⏳ ${testState.timeLeft}`;
-
-            if (
-                testState.timeLeft <= 0
-            ) {
-                clearInterval(
-                    testState.timerId
-                );
-
-                checkAnswer(null);
-            }
-
-        }, 1000);
+        if (testState.timeLeft <= 0) {
+            clearInterval(testState.timerId);
+            checkAnswer(null);
+        }
+    }, 1000);
 }
 
 
@@ -538,30 +435,20 @@ function startTimer() {
    ========================================================= */
 
 function checkAnswer(answer) {
-    clearInterval(
-        testState.timerId
-    );
+    clearInterval(testState.timerId);
 
-    const result =
-        document.getElementById(
-            "result"
-        );
+    const result = document.getElementById("result");
 
     if (!result) return;
 
     const answerButtons =
-        document.querySelectorAll(
-            "#questionContainer button"
-        );
+        document.querySelectorAll("#questionContainer button");
 
     answerButtons.forEach(button => {
         button.disabled = true;
     });
 
-    if (
-        answer ===
-        testState.currentCorrect
-    ) {
+    if (answer === testState.currentCorrect) {
         testState.correctAnswers++;
 
         result.innerHTML = `
@@ -596,9 +483,7 @@ function checkAnswer(answer) {
     `;
 
     const nextQuestionBtn =
-        document.getElementById(
-            "nextQuestionBtn"
-        );
+        document.getElementById("nextQuestionBtn");
 
     if (nextQuestionBtn) {
         nextQuestionBtn.addEventListener(
@@ -625,18 +510,13 @@ function nextQuestion() {
    ========================================================= */
 
 function finishTest() {
-    const total =
-        testState.data.length;
+    const total = testState.data.length;
 
     if (!total) return;
 
-    const percent =
-        Math.round(
-            (
-                testState.correctAnswers /
-                total
-            ) * 100
-        );
+    const percent = Math.round(
+        (testState.correctAnswers / total) * 100
+    );
 
     saveStatistics(
         percent,
@@ -644,10 +524,14 @@ function finishTest() {
         total
     );
 
-    const testArea =
-        document.getElementById(
-            "testArea"
+    if (percent >= 85) {
+        unlockLevel(
+            testState.currentCategory,
+            testState.currentLevel + 1
         );
+    }
+
+    const testArea = document.getElementById("testArea");
 
     if (!testArea) return;
 
@@ -680,14 +564,10 @@ function finishTest() {
     `;
 
     const repeatTestBtn =
-        document.getElementById(
-            "repeatTestBtn"
-        );
+        document.getElementById("repeatTestBtn");
 
     const restorePageBtn =
-        document.getElementById(
-            "restorePageBtn"
-        );
+        document.getElementById("restorePageBtn");
 
     if (repeatTestBtn) {
         repeatTestBtn.addEventListener(
@@ -710,43 +590,26 @@ function finishTest() {
    ========================================================= */
 
 function restorePage() {
-    const mainContent =
-        document.getElementById(
-            "mainContent"
-        );
+    const mainContent = document.getElementById("mainContent");
 
     if (!mainContent) return;
 
-    mainContent.innerHTML =
-        testState.savedPage;
+    mainContent.innerHTML = testState.savedPage;
 
     generateCards(
         "cardContainer",
         testState.data
     );
 
-    const testBtn =
-        document.getElementById(
-            "testBtn"
-        );
-
-    const shuffleBtn =
-        document.getElementById(
-            "shuffleBtn"
-        );
+    const testBtn = document.getElementById("testBtn");
+    const shuffleBtn = document.getElementById("shuffleBtn");
 
     if (testBtn) {
-        testBtn.addEventListener(
-            "click",
-            startTest
-        );
+        testBtn.addEventListener("click", startTest);
     }
 
     if (shuffleBtn) {
-        shuffleBtn.addEventListener(
-            "click",
-            shuffleCards
-        );
+        shuffleBtn.addEventListener("click", shuffleCards);
     }
 }
 
@@ -755,31 +618,19 @@ function restorePage() {
    СОХРАНЕНИЕ СТАТИСТИКИ
    ========================================================= */
 
-function saveStatistics(
-    percent,
-    correct,
-    total
-) {
-    const stats =
-        JSON.parse(
-            localStorage.getItem(
-                "testStats"
-            ) || "{}"
-        );
+function saveStatistics(percent, correct, total) {
+    const stats = JSON.parse(
+        localStorage.getItem("testStats") || "{}"
+    );
 
-    const category =
-        testState.currentCategory;
-
-    const level =
-        testState.currentLevel;
+    const category = testState.currentCategory;
+    const level = testState.currentLevel;
 
     if (!stats[category]) {
         stats[category] = {};
     }
 
-    if (
-        !stats[category][level]
-    ) {
+    if (!stats[category][level]) {
         stats[category][level] = [];
     }
 
@@ -787,8 +638,7 @@ function saveStatistics(
         percent,
         correct,
         total,
-        date:
-            new Date().toLocaleString()
+        date: new Date().toLocaleString()
     });
 
     localStorage.setItem(
@@ -804,20 +654,9 @@ function saveStatistics(
 
 function loadStatistics() {
     const columns = {
-        verbs:
-            document.getElementById(
-                "verbsColumn"
-            ),
-
-        adjectives:
-            document.getElementById(
-                "adjectivesColumn"
-            ),
-
-        adverbs:
-            document.getElementById(
-                "adverbsColumn"
-            )
+        verbs: document.getElementById("verbsColumn"),
+        adjectives: document.getElementById("adjectivesColumn"),
+        adverbs: document.getElementById("adverbsColumn")
     };
 
     const categoryNames = {
@@ -826,119 +665,69 @@ function loadStatistics() {
         adverbs: "Наречия"
     };
 
-    for (
-        const category
-        in columns
-        ) {
-        if (
-            columns[category]
-        ) {
-            columns[
-                category
-                ].innerHTML =
-                `<h2>${
-                    categoryNames[
-                        category
-                        ]
-                }</h2>`;
+    for (const category in columns) {
+        if (columns[category]) {
+            columns[category].innerHTML =
+                `<h2>${categoryNames[category]}</h2>`;
         }
     }
 
-    const stats =
-        JSON.parse(
-            localStorage.getItem(
-                "testStats"
-            ) || "{}"
-        );
+    const stats = JSON.parse(
+        localStorage.getItem("testStats") || "{}"
+    );
 
-    for (
-        const category
-        in stats
-        ) {
-        const column =
-            columns[category];
+    for (const category in stats) {
+        const column = columns[category];
 
         if (!column) continue;
 
-        const levels =
-            stats[category];
+        const levels = stats[category];
 
-        for (
-            const level
-            in levels
-            ) {
-            const attempts =
-                levels[level];
+        for (const level in levels) {
+            const attempts = levels[level];
 
             attempts
                 .slice()
                 .reverse()
-                .forEach(
-                    attempt => {
+                .forEach(attempt => {
+                    let color;
 
-                        let color;
-
-                        if (
-                            attempt.percent >= 85
-                        ) {
-                            color =
-                                "#48bb78";
-                        } else if (
-                            attempt.percent >= 50
-                        ) {
-                            color =
-                                "#f6e05e";
-                        } else {
-                            color =
-                                "#f56565";
-                        }
-
-                        column.innerHTML += `
-                            <div
-                                class="stat-card"
-                            >
-
-                                <div
-                                    class="level-name"
-                                >
-                                    Уровень ${level}
-                                </div>
-
-                                <div
-                                    class="percent"
-                                >
-                                    ${attempt.percent}%
-                                    (${attempt.correct}/${attempt.total})
-                                </div>
-
-                                <div
-                                    class="stat-progress"
-                                >
-
-                                    <div
-                                        class="stat-progress-fill"
-                                        style="
-                                            width:
-                                            ${attempt.percent}%;
-
-                                            background:
-                                            ${color};
-                                        "
-                                    ></div>
-
-                                </div>
-
-                                <div
-                                    class="details"
-                                >
-                                    Дата:
-                                    ${attempt.date}
-                                </div>
-
-                            </div>
-                        `;
+                    if (attempt.percent >= 85) {
+                        color = "#48bb78";
+                    } else if (attempt.percent >= 50) {
+                        color = "#f6e05e";
+                    } else {
+                        color = "#f56565";
                     }
-                );
+
+                    column.innerHTML += `
+                        <div class="stat-card">
+                            <div class="level-name">
+                                Уровень ${level}
+                            </div>
+
+                            <div class="percent">
+                                ${attempt.percent}%
+                                (${attempt.correct}/${attempt.total})
+                            </div>
+
+                            <div class="stat-progress">
+                                <div
+                                    class="stat-progress-fill"
+                                    style="
+                                        width: ${attempt.percent}%;
+                                        background: ${color};
+                                    "
+                                ></div>
+                            </div>
+
+                            <div class="details">
+                                Дата:
+                                ${attempt.date}
+                            </div>
+                        </div>
+                    `;
+                });
         }
     }
 }
@@ -949,16 +738,13 @@ function loadStatistics() {
    ========================================================= */
 
 function clearStatistics() {
-    const confirmed =
-        confirm(
-            "Вы уверены, что хотите очистить всю статистику?"
-        );
+    const confirmed = confirm(
+        "Вы уверены, что хотите очистить всю статистику?"
+    );
 
     if (!confirmed) return;
 
-    localStorage.removeItem(
-        "testStats"
-    );
+    localStorage.removeItem("testStats");
 
     loadStatistics();
 }
@@ -969,27 +755,17 @@ function clearStatistics() {
    ========================================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
-    const testBtn =
-        document.getElementById("testBtn");
-
-    const shuffleBtn =
-        document.getElementById("shuffleBtn");
-
+    const testBtn = document.getElementById("testBtn");
+    const shuffleBtn = document.getElementById("shuffleBtn");
     const clearStatisticsBtn =
         document.getElementById("clearStatisticsBtn");
 
     if (testBtn) {
-        testBtn.addEventListener(
-            "click",
-            startTest
-        );
+        testBtn.addEventListener("click", startTest);
     }
 
     if (shuffleBtn) {
-        shuffleBtn.addEventListener(
-            "click",
-            shuffleCards
-        );
+        shuffleBtn.addEventListener("click", shuffleCards);
     }
 
     if (clearStatisticsBtn) {

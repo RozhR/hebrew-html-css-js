@@ -49,7 +49,7 @@ function loadMenu() {
                 </a>
 
                 <ul class="styled-dropdown dropdown-menu">
-                    ${generateLevels("verbs.html", "verbs",21)}
+                    ${generateLevels("verbs.html", "verbs", 25)}
                 </ul>
             </li>
 
@@ -59,7 +59,7 @@ function loadMenu() {
                 </a>
 
                 <ul class="styled-dropdown dropdown-menu">
-                    ${generateLevels("adjectives.html", "adjectives", 21)}
+                    ${generateLevels("adjectives.html", "adjectives", 25)}
                 </ul>
             </li>
 
@@ -68,7 +68,7 @@ function loadMenu() {
                     Наречия ▾
                 </a>
                 <ul class="styled-dropdown dropdown-menu">
-                    ${generateLevels("adverbs.html", "adverbs", 21)}
+                    ${generateLevels("adverbs.html", "adverbs", 15)}
                 </ul>
             </li>
 
