@@ -1,4 +1,5 @@
 /* ===== ОБЩИЕ СТИЛИ ===== */
+
 * {
     margin: 0;
     padding: 0;
@@ -29,22 +30,23 @@ h2 {
 }
 
 /* ===== НАВИГАЦИЯ ===== */
+
 .navbar {
     width: 100%;
     background: #1f2733;
     padding: 12px 0;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    margin-bottom: 25px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
     position: relative;
     z-index: 100;
-    margin-bottom: 25px;
 }
 
 .nav-list {
     list-style: none;
     display: flex;
-    gap: 30px;
     justify-content: center;
     align-items: center;
+    gap: 30px;
     position: relative;
 }
 
@@ -52,20 +54,29 @@ h2 {
     position: relative;
 }
 
-.nav-list a {
+.nav-list a,
+.dropdown-toggle {
     color: #e2e8f0;
     text-decoration: none;
     font-size: 18px;
     padding: 8px 12px;
-    transition: color 0.3s;
     cursor: pointer;
+    transition: color 0.3s;
 }
 
-.nav-list a:hover {
+.dropdown-toggle {
+    background: none;
+    border: none;
+    font-family: inherit;
+}
+
+.nav-list a:hover,
+.dropdown-toggle:hover {
     color: #9f7aea;
 }
 
 /* ===== DROPDOWN ===== */
+
 .dropdown-menu {
     position: absolute;
     top: 35px;
@@ -80,13 +91,13 @@ h2 {
     background: linear-gradient(135deg, #4a5568, #2d3748);
     border-radius: 12px;
     padding: 10px 0;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.45);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
     transform-origin: top;
     transform: scaleY(0);
     opacity: 0;
-    transition: transform 0.25s ease, opacity 0.25s ease;
     overflow: hidden;
     pointer-events: auto;
+    transition: transform 0.25s ease, opacity 0.25s ease;
 }
 
 .dropdown:hover .styled-dropdown {
@@ -94,26 +105,38 @@ h2 {
     opacity: 1;
 }
 
-.styled-dropdown li a {
+.styled-dropdown li a,
+.styled-dropdown .locked-link {
     display: block;
     padding: 10px 15px;
     font-size: 17px;
     color: #f7fafc;
-    transition: background 0.25s, color 0.25s;
     cursor: pointer;
+    transition: background 0.25s, color 0.25s;
 }
 
 .styled-dropdown li a:hover {
-    background: rgba(255,255,255,0.08);
+    background: rgba(255, 255, 255, 0.08);
     color: #d6bcfa;
 }
 
+.locked-link {
+    opacity: 0.45;
+    cursor: not-allowed !important;
+}
+
+.locked-link:hover {
+    color: #e2e8f0 !important;
+    background: transparent !important;
+}
+
 /* ===== КАРТОЧКИ ===== */
+
 .card-container {
     display: flex;
     flex-wrap: wrap;
-    gap: 20px;
     justify-content: center;
+    gap: 20px;
     margin-top: 30px;
 }
 
@@ -123,6 +146,10 @@ h2 {
     perspective: 1000px;
     cursor: grab;
     transition: all 0.4s ease;
+}
+
+.card:active {
+    cursor: grabbing;
 }
 
 .card:hover {
@@ -151,9 +178,10 @@ h2 {
     display: flex;
     align-items: center;
     justify-content: center;
+    text-align: center;
     font-size: 28px;
     padding: 10px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
 }
 
 .card-front {
@@ -168,6 +196,7 @@ h2 {
 }
 
 /* ===== КНОПКИ ===== */
+
 .styled-btn {
     background: linear-gradient(135deg, #805ad5, #9f7aea);
     border: none;
@@ -176,59 +205,42 @@ h2 {
     border-radius: 10px;
     color: white;
     cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     transition: transform 0.25s, box-shadow 0.25s;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
 }
 
 .styled-btn:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
 }
 
-.stat-card {
-    background: linear-gradient(135deg, #4a5568, #2d3748);
-    border-radius: 12px;
-    padding: 15px 20px;
-    margin: 10px auto;
-    max-width: 500px;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.5);
-    transition: transform 0.3s, box-shadow 0.3s;
-}
-
-.stat-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.6);
-}
-
-.stat-card .percent {
-    font-size: 22px;
-    color: #9f7aea;
-    font-weight: bold;
-    text-align: center;
-}
-
-.stat-card .details {
-    font-size: 16px;
-    color: #cbd5e1;
-}
+/* ===== УРОВНИ ===== */
 
 .level-title {
     font-size: 1.8rem;
     color: #9f7aea;
     margin-top: 30px;
     text-align: center;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
-.stats-column {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-.stat-card .level-name {
-    color: #9f7aea;
+
+.locked-level {
+    margin-top: 40px;
+    padding: 30px;
     text-align: center;
+    background: #1f2733;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
 }
+
+.locked-level p {
+    margin-top: 15px;
+    font-size: 18px;
+    color: #cbd5e1;
+}
+
+/* ===== ТЕСТ ===== */
+
 .test-area {
     width: 100%;
     max-width: 1000px;
@@ -252,10 +264,102 @@ h2 {
 
 .progress-fill {
     height: 100%;
-    width: 0%;
+    width: 0;
     background: linear-gradient(135deg, #805ad5, #9f7aea);
     border-radius: 12px;
     transition: width 0.3s ease;
+}
+
+.timer {
+    font-size: 24px;
+    color: #f7fafc;
+    margin-bottom: 15px;
+}
+
+.answers-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: nowrap;
+    gap: 15px;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.answers-container button {
+    flex: 1 1 auto;
+    white-space: nowrap;
+    padding: 12px 20px;
+    font-size: 18px;
+}
+
+.functions {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.correct,
+.wrong {
+    display: block;
+    font-size: 24px;
+    font-weight: bold;
+    margin-top: 20px;
+    text-align: center;
+}
+
+.correct {
+    color: #48bb78;
+}
+
+.wrong {
+    color: #f56565;
+}
+
+#result {
+    margin-top: 15px;
+    text-align: center;
+}
+
+/* ===== СТАТИСТИКА ===== */
+
+.stats-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, #4a5568, #2d3748);
+    border-radius: 12px;
+    padding: 15px 20px;
+    margin: 10px auto;
+    max-width: 500px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+}
+
+.stat-card .level-name {
+    color: #9f7aea;
+    text-align: center;
+}
+
+.stat-card .percent {
+    font-size: 22px;
+    color: #9f7aea;
+    font-weight: bold;
+    text-align: center;
+}
+
+.stat-card .details {
+    font-size: 16px;
+    color: #cbd5e1;
 }
 
 .stat-progress {
@@ -269,92 +373,4 @@ h2 {
 .stat-progress-fill {
     height: 100%;
     transition: width 0.3s ease;
-}
-
-
-
-
-.timer {
-    font-size: 24px;
-    color: #f7fafc;
-    margin-bottom: 15px;
-}
-/* Контейнер с вариантами ответов */
-.answers-container {
-    display: flex;
-    justify-content: center; /* выравнивание по центру */
-    gap: 15px;               /* расстояние между кнопками */
-    flex-wrap: wrap;          /* перенос на новую строку при нехватке места */
-    margin-top: 20px;
-}
-
-/* Блок кнопок функций */
-.functions {
-    display: flex;
-    justify-content: center; /* выравнивание по центру */
-    gap: 20px;              /* расстояние между кнопками */
-    margin: 20px 0;         /* отступ сверху и снизу */
-}
-
-.correct {
-    color: #48bb78; /* зеленый */
-    font-size: 24px;
-    font-weight: bold;
-    display: block;
-    margin-top: 20px; /* отступ сверху */
-    text-align: center;
-}
-
-.wrong {
-    color: #f56565; /* красный */
-    font-size: 24px;
-    font-weight: bold;
-    display: block;
-    margin-top: 20px;
-    text-align: center;
-}
-
-#result {
-    text-align: center; /* центрируем всю область результата */
-    margin-top: 15px;
-}
-.answers-container {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    flex-wrap: nowrap;      /* строго в одну строку */
-    width: 100%;            /* ← ВАЖНО */
-    margin-top: 20px;
-}
-
-.answers-container button {
-    flex: 1 1 auto;         /* кнопки растягиваются */
-    white-space: nowrap;
-    padding: 12px 20px;
-    font-size: 18px;
-}
-
-.locked-link {
-    opacity: 0.45;
-    cursor: not-allowed !important;
-}
-
-.locked-link:hover {
-    color: #e2e8f0 !important;
-    background: transparent !important;
-}
-
-.locked-level {
-    margin-top: 40px;
-    text-align: center;
-    padding: 30px;
-    background: #1f2733;
-    border-radius: 12px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-}
-
-.locked-level p {
-    margin-top: 15px;
-    font-size: 18px;
-    color: #cbd5e1;
 }

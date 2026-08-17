@@ -1,4 +1,18 @@
 /* =========================================================
+   КОНФИГУРАЦИЯ
+   ========================================================= */
+
+const CONFIG = {
+    TEST_TIME: 15,
+    PASS_PERCENT: 85,
+    ANSWERS_COUNT: 4,
+    STORAGE_KEYS: {
+        STATS: "testStats",
+        UNLOCKED_LEVELS: "unlockedLevels"
+    }
+};
+
+/* =========================================================
    СОСТОЯНИЕ ТЕСТА
    ========================================================= */
 
@@ -11,14 +25,43 @@ const testState = {
     currentLevelName: "",
     currentLevel: 1,
     currentCategory: "verbs",
-    timeLeft: 15,
+    timeLeft: CONFIG.TEST_TIME,
     timerId: null
 };
 
-
 /* =========================================================
-   УНИВЕРСАЛЬНОЕ ПЕРЕМЕШИВАНИЕ МАССИВА
+   ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
    ========================================================= */
+
+function getElement(id) {
+    return document.getElementById(id);
+}
+
+function getCurrentLevel() {
+    const params = new URLSearchParams(window.location.search);
+    return Number(params.get("level")) || 1;
+}
+
+function getCurrentCategory() {
+    return document.body.dataset.category || "verbs";
+}
+
+function getStorageData(key, fallback = {}) {
+    try {
+        return JSON.parse(localStorage.getItem(key)) || fallback;
+    } catch (error) {
+        console.error(`Ошибка чтения localStorage: ${key}`, error);
+        return fallback;
+    }
+}
+
+function setStorageData(key, value) {
+    try {
+        localStorage.setItem(key, JSON.stringify(value));
+    } catch (error) {
+        console.error(`Ошибка записи localStorage: ${key}`, error);
+    }
+}
 
 function shuffleArray(array) {
     const copy = [...array];
@@ -31,47 +74,35 @@ function shuffleArray(array) {
     return copy;
 }
 
-
 /* =========================================================
    КАРТОЧКИ
    ========================================================= */
 
 function generateCards(containerId, data) {
-    const container = document.getElementById(containerId);
+    const container = getElement(containerId);
 
     if (!container) return;
 
     container.innerHTML = "";
 
-    data.forEach(card => {
-        const cardEl = document.createElement("div");
+    data.forEach(({ hebrew, russian }) => {
+        const card = document.createElement("div");
 
-        cardEl.className = "card";
-
-        cardEl.innerHTML = `
+        card.className = "card";
+        card.innerHTML = `
             <div class="card-inner">
-                <div class="card-front">
-                    ${card.hebrew}
-                </div>
-
-                <div class="card-back">
-                    ${card.russian}
-                </div>
+                <div class="card-front">${hebrew}</div>
+                <div class="card-back">${russian}</div>
             </div>
         `;
 
-        cardEl.addEventListener("click", () => {
-            cardEl.classList.toggle("flipped");
+        card.addEventListener("click", () => {
+            card.classList.toggle("flipped");
         });
 
-        container.appendChild(cardEl);
+        container.appendChild(card);
     });
 }
-
-
-/* =========================================================
-   ПЕРЕМЕШИВАНИЕ КАРТОЧЕК
-   ========================================================= */
 
 function shuffleCards() {
     const container = document.querySelector(".card-container");
@@ -80,38 +111,24 @@ function shuffleCards() {
 
     const cards = Array.from(container.children);
 
-    cards.forEach(card => {
-        card.classList.remove("flipped");
-    });
-
-    const shuffledCards = shuffleArray(cards);
-
-    shuffledCards.forEach(card => {
-        container.appendChild(card);
-    });
+    cards.forEach(card => card.classList.remove("flipped"));
+    shuffleArray(cards).forEach(card => container.appendChild(card));
 }
 
-
 /* =========================================================
-   ПРОВЕРКА ДОСТУПА К УРОВНЮ
+   ДОСТУП К УРОВНЯМ
    ========================================================= */
 
 function isLevelUnlocked(category, level) {
-    if (level === 1) {
-        return true;
-    }
+    if (level === 1) return true;
 
-    const unlockedLevels = JSON.parse(
-        localStorage.getItem("unlockedLevels") || "{}"
-    );
+    const unlockedLevels = getStorageData(CONFIG.STORAGE_KEYS.UNLOCKED_LEVELS);
 
     return unlockedLevels[category]?.includes(level) || false;
 }
 
 function unlockLevel(category, level) {
-    const unlockedLevels = JSON.parse(
-        localStorage.getItem("unlockedLevels") || "{}"
-    );
+    const unlockedLevels = getStorageData(CONFIG.STORAGE_KEYS.UNLOCKED_LEVELS);
 
     if (!unlockedLevels[category]) {
         unlockedLevels[category] = [1];
@@ -121,24 +138,18 @@ function unlockLevel(category, level) {
         unlockedLevels[category].push(level);
     }
 
-    localStorage.setItem(
-        "unlockedLevels",
-        JSON.stringify(unlockedLevels)
-    );
+    setStorageData(CONFIG.STORAGE_KEYS.UNLOCKED_LEVELS, unlockedLevels);
 }
-
 
 /* =========================================================
    ЗАГРУЗКА УРОВНЯ
    ========================================================= */
 
 function loadLevel(data) {
-    const params = new URLSearchParams(window.location.search);
-    const level = Number(params.get("level")) || 1;
-    const category = document.body.dataset.category;
-
-    const levelTitle = document.getElementById("levelTitle");
-    const cardContainer = document.getElementById("cardContainer");
+    const level = getCurrentLevel();
+    const category = getCurrentCategory();
+    const levelTitle = getElement("levelTitle");
+    const cardContainer = getElement("cardContainer");
 
     if (!cardContainer) return;
 
@@ -147,97 +158,75 @@ function loadLevel(data) {
     }
 
     if (!isLevelUnlocked(category, level)) {
-        cardContainer.innerHTML = `
-            <div class="locked-level">
-                <h2>
-                    🔒 Уровень заблокирован
-                </h2>
-
-                <p>
-                    Для открытия уровня ${level}
-                    необходимо пройти уровень
-                    ${level - 1}
-                    минимум на 85%.
-                </p>
-            </div>
-        `;
-
+        renderLockedLevel(cardContainer, level);
         return;
     }
 
     const cardsData = data[level];
 
-    if (cardsData) {
-        generateCards("cardContainer", cardsData);
-    } else {
-        cardContainer.innerHTML = `
-            <h2>
-                Этот уровень пока не заполнен
-            </h2>
-        `;
+    if (!cardsData) {
+        cardContainer.innerHTML = "<h2>Этот уровень пока не заполнен</h2>";
+        return;
     }
+
+    generateCards("cardContainer", cardsData);
 }
 
+function renderLockedLevel(container, level) {
+    container.innerHTML = `
+        <div class="locked-level">
+            <h2>🔒 Уровень заблокирован</h2>
+            <p>
+                Для открытия уровня ${level} необходимо пройти уровень
+                ${level - 1} минимум на ${CONFIG.PASS_PERCENT}%.
+            </p>
+        </div>
+    `;
+}
 
 /* =========================================================
-   НАЧАЛО ТЕСТА
+   ЗАПУСК ТЕСТА
    ========================================================= */
 
 function startTest() {
-    const mainContent = document.getElementById("mainContent");
+    const mainContent = getElement("mainContent");
 
     if (!mainContent) return;
 
-    const title = document.getElementById("levelTitle");
-
-    testState.currentLevelName = title
-        ? title.innerText.trim()
-        : "Неизвестный уровень";
-
-    const params = new URLSearchParams(window.location.search);
-
-    testState.currentLevel = Number(params.get("level")) || 1;
-    testState.currentCategory = document.body.dataset.category || "verbs";
-
-    const cards = Array.from(
-        document.querySelectorAll(".card")
-    );
+    const cards = Array.from(document.querySelectorAll(".card"));
 
     if (!cards.length) {
         alert("Нет карточек для тестирования");
         return;
     }
 
-    testState.data = cards.map(card => ({
-        hebrew: card
-            .querySelector(".card-front")
-            .innerText
-            .trim(),
+    initializeTestState(mainContent, cards);
+    renderTestArea();
+    generateQuestion();
+}
 
-        russian: card
-            .querySelector(".card-back")
-            .innerText
-            .trim()
+function initializeTestState(mainContent, cards) {
+    const title = getElement("levelTitle");
+
+    testState.currentLevelName = title
+        ? title.innerText.trim()
+        : "Неизвестный уровень";
+
+    testState.currentLevel = getCurrentLevel();
+    testState.currentCategory = getCurrentCategory();
+
+    testState.data = cards.map(card => ({
+        hebrew: card.querySelector(".card-front")?.innerText.trim() || "",
+        russian: card.querySelector(".card-back")?.innerText.trim() || ""
     }));
 
     testState.savedPage = mainContent.innerHTML;
-
     testState.index = 0;
     testState.correctAnswers = 0;
-
-    renderTestArea();
-    generateQuestion();
 }
-
-
-/* =========================================================
-   ПОВТОРНЫЙ ЗАПУСК ТЕСТА
-   ========================================================= */
 
 function restartTest() {
-    const mainContent = document.getElementById("mainContent");
-
-    if (!mainContent) return;
+    if (!getElement("mainContent")) return;
 
     testState.index = 0;
     testState.correctAnswers = 0;
@@ -246,48 +235,28 @@ function restartTest() {
     generateQuestion();
 }
 
-
 /* =========================================================
-   ОТРИСОВКА ОБЛАСТИ ТЕСТА
+   ОБЛАСТЬ ТЕСТА
    ========================================================= */
 
 function renderTestArea() {
-    const mainContent = document.getElementById("mainContent");
+    const mainContent = getElement("mainContent");
 
     if (!mainContent) return;
 
     mainContent.innerHTML = `
         <div id="testArea" class="test-area">
-            <div
-                id="progressText"
-                class="progress-text"
-            ></div>
+            <div id="progressText" class="progress-text"></div>
 
-            <div
-                id="progressBar"
-                class="progress-bar"
-            >
-                <div
-                    id="progressFill"
-                    class="progress-fill"
-                ></div>
+            <div id="progressBar" class="progress-bar">
+                <div id="progressFill" class="progress-fill"></div>
             </div>
 
-            <div
-                id="timer"
-                class="timer"
-            >
-                ⏳ 15
-            </div>
-
-            <div
-                id="questionContainer"
-                class="question-container"
-            ></div>
+            <div id="timer" class="timer">⏳ ${CONFIG.TEST_TIME}</div>
+            <div id="questionContainer" class="question-container"></div>
         </div>
     `;
 }
-
 
 /* =========================================================
    ГЕНЕРАЦИЯ ВОПРОСА
@@ -295,7 +264,7 @@ function renderTestArea() {
 
 function generateQuestion() {
     if (testState.index >= testState.data.length) {
-        clearInterval(testState.timerId);
+        stopTimer();
         finishTest();
         return;
     }
@@ -304,8 +273,18 @@ function generateQuestion() {
 
     testState.currentCorrect = question.russian;
 
-    const progressText = document.getElementById("progressText");
-    const progressFill = document.getElementById("progressFill");
+    updateTestProgress();
+
+    const answers = createAnswerOptions(question.russian);
+
+    renderQuestion(question.hebrew, answers);
+    animateQuestion();
+    startTimer();
+}
+
+function updateTestProgress() {
+    const progressText = getElement("progressText");
+    const progressFill = getElement("progressFill");
 
     if (progressText) {
         progressText.innerText =
@@ -313,82 +292,61 @@ function generateQuestion() {
     }
 
     if (progressFill) {
-        progressFill.style.width =
-            `${(testState.index / testState.data.length) * 100}%`;
+        const progress = (testState.index / testState.data.length) * 100;
+        progressFill.style.width = `${progress}%`;
     }
+}
 
-    let answers = [
-        question.russian
-    ];
+function createAnswerOptions(correctAnswer) {
+    const answers = [correctAnswer];
 
     while (
-        answers.length < 4 &&
+        answers.length < CONFIG.ANSWERS_COUNT &&
         answers.length < testState.data.length
         ) {
-        const randomItem =
-            testState.data[
-                Math.floor(Math.random() * testState.data.length)
-                ];
-
-        const randomAnswer = randomItem.russian;
+        const randomIndex = Math.floor(Math.random() * testState.data.length);
+        const randomAnswer = testState.data[randomIndex].russian;
 
         if (!answers.includes(randomAnswer)) {
             answers.push(randomAnswer);
         }
     }
 
-    answers = shuffleArray(answers);
+    return shuffleArray(answers);
+}
 
-    const questionContainer =
-        document.getElementById("questionContainer");
+function renderQuestion(hebrew, answers) {
+    const questionContainer = getElement("questionContainer");
 
     if (!questionContainer) return;
 
     questionContainer.innerHTML = `
-        <h1 class="question">
-            ${question.hebrew}
-        </h1>
-
-        <div class="answers-container">
-            ${answers
-        .map(answer => `
-                    <button
-                        class="styled-btn answer-btn"
-                        data-answer="${answer}"
-                    >
-                        ${answer}
-                    </button>
-                `)
-        .join("")}
-        </div>
-
-        <div
-            id="result"
-            class="result"
-        ></div>
+        <h1 class="question">${hebrew}</h1>
+        <div class="answers-container"></div>
+        <div id="result" class="result"></div>
     `;
 
-    const answerButtons =
-        document.querySelectorAll(".answer-btn");
+    const answersContainer = questionContainer.querySelector(".answers-container");
 
-    answerButtons.forEach(button => {
+    if (!answersContainer) return;
+
+    answers.forEach(answer => {
+        const button = document.createElement("button");
+
+        button.className = "styled-btn answer-btn";
+        button.type = "button";
+        button.innerText = answer;
+
         button.addEventListener("click", () => {
-            checkAnswer(button.dataset.answer);
+            checkAnswer(answer);
         });
-    });
 
-    animateQuestion();
-    startTimer();
+        answersContainer.appendChild(button);
+    });
 }
 
-
-/* =========================================================
-   АНИМАЦИЯ ВОПРОСА
-   ========================================================= */
-
 function animateQuestion() {
-    const questionContainer =
-        document.getElementById("questionContainer");
+    const questionContainer = getElement("questionContainer");
 
     if (!questionContainer) return;
 
@@ -401,109 +359,101 @@ function animateQuestion() {
     }, 30);
 }
 
-
 /* =========================================================
    ТАЙМЕР
    ========================================================= */
 
 function startTimer() {
-    testState.timeLeft = 15;
-
-    const timer = document.getElementById("timer");
+    const timer = getElement("timer");
 
     if (!timer) return;
 
-    timer.innerText = `⏳ ${testState.timeLeft}`;
+    testState.timeLeft = CONFIG.TEST_TIME;
 
-    clearInterval(testState.timerId);
+    updateTimer(timer);
+    stopTimer();
 
     testState.timerId = setInterval(() => {
         testState.timeLeft--;
 
-        timer.innerText = `⏳ ${testState.timeLeft}`;
+        updateTimer(timer);
 
         if (testState.timeLeft <= 0) {
-            clearInterval(testState.timerId);
+            stopTimer();
             checkAnswer(null);
         }
     }, 1000);
 }
 
+function updateTimer(timer) {
+    timer.innerText = `⏳ ${testState.timeLeft}`;
+}
+
+function stopTimer() {
+    clearInterval(testState.timerId);
+    testState.timerId = null;
+}
 
 /* =========================================================
    ПРОВЕРКА ОТВЕТА
    ========================================================= */
 
 function checkAnswer(answer) {
-    clearInterval(testState.timerId);
+    stopTimer();
+    disableAnswerButtons();
 
-    const result = document.getElementById("result");
+    const isCorrect = answer === testState.currentCorrect;
+
+    if (isCorrect) {
+        testState.correctAnswers++;
+    }
+
+    renderAnswerResult(isCorrect);
+}
+
+function disableAnswerButtons() {
+    const buttons = document.querySelectorAll(
+        "#questionContainer .answer-btn"
+    );
+
+    buttons.forEach(button => {
+        button.disabled = true;
+    });
+}
+
+function renderAnswerResult(isCorrect) {
+    const result = getElement("result");
 
     if (!result) return;
 
-    const answerButtons =
-        document.querySelectorAll("#questionContainer button");
-
-    answerButtons.forEach(button => {
-        button.disabled = true;
-    });
-
-    if (answer === testState.currentCorrect) {
-        testState.correctAnswers++;
-
-        result.innerHTML = `
-            <span class="correct">
-                Верно!
-            </span>
-        `;
-    } else {
-        result.innerHTML = `
-            <span class="wrong">
-                Неверно!
-            </span>
-
+    result.innerHTML = isCorrect
+        ? '<span class="correct">Верно!</span>'
+        : `
+            <span class="wrong">Неверно!</span>
             <br>
-
-            <small>
-                Правильный ответ:
-                ${testState.currentCorrect}
-            </small>
+            <small>Правильный ответ: ${testState.currentCorrect}</small>
         `;
-    }
 
-    result.innerHTML += `
-        <br><br>
+    const nextButton = document.createElement("button");
 
-        <button
-            class="styled-btn"
-            id="nextQuestionBtn"
-        >
-            Продолжить ➜
-        </button>
-    `;
+    nextButton.className = "styled-btn";
+    nextButton.id = "nextQuestionBtn";
+    nextButton.type = "button";
+    nextButton.innerText = "Продолжить ➜";
 
-    const nextQuestionBtn =
-        document.getElementById("nextQuestionBtn");
+    nextButton.addEventListener("click", nextQuestion);
 
-    if (nextQuestionBtn) {
-        nextQuestionBtn.addEventListener(
-            "click",
-            nextQuestion
-        );
-    }
+    result.append(
+        document.createElement("br"),
+        document.createElement("br"),
+        nextButton
+    );
 }
-
-
-/* =========================================================
-   СЛЕДУЮЩИЙ ВОПРОС
-   ========================================================= */
 
 function nextQuestion() {
     testState.index++;
-
     generateQuestion();
 }
-
 
 /* =========================================================
    ЗАВЕРШЕНИЕ ТЕСТА
@@ -518,28 +468,27 @@ function finishTest() {
         (testState.correctAnswers / total) * 100
     );
 
-    saveStatistics(
-        percent,
-        testState.correctAnswers,
-        total
+    saveStatistics(percent, testState.correctAnswers, total);
+    unlockNextLevelIfPassed(percent);
+    renderTestResult(percent, total);
+}
+
+function unlockNextLevelIfPassed(percent) {
+    if (percent < CONFIG.PASS_PERCENT) return;
+
+    unlockLevel(
+        testState.currentCategory,
+        testState.currentLevel + 1
     );
+}
 
-    if (percent >= 85) {
-        unlockLevel(
-            testState.currentCategory,
-            testState.currentLevel + 1
-        );
-    }
-
-    const testArea = document.getElementById("testArea");
+function renderTestResult(percent, total) {
+    const testArea = getElement("testArea");
 
     if (!testArea) return;
 
     testArea.innerHTML = `
-        <h2>
-            Результат:
-            ${percent}%
-        </h2>
+        <h2>Результат: ${percent}%</h2>
 
         <p>
             Верных ответов:
@@ -549,6 +498,7 @@ function finishTest() {
         <button
             class="styled-btn"
             id="repeatTestBtn"
+            type="button"
         >
             Повторить тест
         </button>
@@ -558,71 +508,37 @@ function finishTest() {
         <button
             class="styled-btn"
             id="restorePageBtn"
+            type="button"
         >
             Вернуться к изучению
         </button>
     `;
 
-    const repeatTestBtn =
-        document.getElementById("repeatTestBtn");
-
-    const restorePageBtn =
-        document.getElementById("restorePageBtn");
-
-    if (repeatTestBtn) {
-        repeatTestBtn.addEventListener(
-            "click",
-            restartTest
-        );
-    }
-
-    if (restorePageBtn) {
-        restorePageBtn.addEventListener(
-            "click",
-            restorePage
-        );
-    }
+    getElement("repeatTestBtn")?.addEventListener("click", restartTest);
+    getElement("restorePageBtn")?.addEventListener("click", restorePage);
 }
-
 
 /* =========================================================
    ВОЗВРАТ К КАРТОЧКАМ
    ========================================================= */
 
 function restorePage() {
-    const mainContent = document.getElementById("mainContent");
+    const mainContent = getElement("mainContent");
 
     if (!mainContent) return;
 
     mainContent.innerHTML = testState.savedPage;
 
-    generateCards(
-        "cardContainer",
-        testState.data
-    );
-
-    const testBtn = document.getElementById("testBtn");
-    const shuffleBtn = document.getElementById("shuffleBtn");
-
-    if (testBtn) {
-        testBtn.addEventListener("click", startTest);
-    }
-
-    if (shuffleBtn) {
-        shuffleBtn.addEventListener("click", shuffleCards);
-    }
+    generateCards("cardContainer", testState.data);
+    bindStudyPageEvents();
 }
 
-
 /* =========================================================
-   СОХРАНЕНИЕ СТАТИСТИКИ
+   СТАТИСТИКА
    ========================================================= */
 
 function saveStatistics(percent, correct, total) {
-    const stats = JSON.parse(
-        localStorage.getItem("testStats") || "{}"
-    );
-
+    const stats = getStorageData(CONFIG.STORAGE_KEYS.STATS);
     const category = testState.currentCategory;
     const level = testState.currentLevel;
 
@@ -641,101 +557,99 @@ function saveStatistics(percent, correct, total) {
         date: new Date().toLocaleString()
     });
 
-    localStorage.setItem(
-        "testStats",
-        JSON.stringify(stats)
-    );
+    setStorageData(CONFIG.STORAGE_KEYS.STATS, stats);
 }
 
-
-/* =========================================================
-   ЗАГРУЗКА СТАТИСТИКИ
-   ========================================================= */
-
 function loadStatistics() {
-    const columns = {
-        verbs: document.getElementById("verbsColumn"),
-        adjectives: document.getElementById("adjectivesColumn"),
-        adverbs: document.getElementById("adverbsColumn")
-    };
+    const columns = getStatisticsColumns();
 
+    resetStatisticsColumns(columns);
+
+    const stats = getStorageData(CONFIG.STORAGE_KEYS.STATS);
+
+    Object.entries(stats).forEach(([category, levels]) => {
+        const column = columns[category];
+
+        if (!column) return;
+
+        Object.entries(levels).forEach(([level, attempts]) => {
+            attempts
+                .slice()
+                .reverse()
+                .forEach(attempt => {
+                    renderStatisticsCard(column, level, attempt);
+                });
+        });
+    });
+}
+
+function getStatisticsColumns() {
+    return {
+        verbs: getElement("verbsColumn"),
+        adjectives: getElement("adjectivesColumn"),
+        adverbs: getElement("adverbsColumn")
+    };
+}
+
+function resetStatisticsColumns(columns) {
     const categoryNames = {
         verbs: "Глаголы",
         adjectives: "Прилагательные",
         adverbs: "Наречия"
     };
 
-    for (const category in columns) {
-        if (columns[category]) {
-            columns[category].innerHTML =
-                `<h2>${categoryNames[category]}</h2>`;
-        }
-    }
+    Object.entries(columns).forEach(([category, column]) => {
+        if (!column) return;
 
-    const stats = JSON.parse(
-        localStorage.getItem("testStats") || "{}"
-    );
-
-    for (const category in stats) {
-        const column = columns[category];
-
-        if (!column) continue;
-
-        const levels = stats[category];
-
-        for (const level in levels) {
-            const attempts = levels[level];
-
-            attempts
-                .slice()
-                .reverse()
-                .forEach(attempt => {
-                    let color;
-
-                    if (attempt.percent >= 85) {
-                        color = "#48bb78";
-                    } else if (attempt.percent >= 50) {
-                        color = "#f6e05e";
-                    } else {
-                        color = "#f56565";
-                    }
-
-                    column.innerHTML += `
-                        <div class="stat-card">
-                            <div class="level-name">
-                                Уровень ${level}
-                            </div>
-
-                            <div class="percent">
-                                ${attempt.percent}%
-                                (${attempt.correct}/${attempt.total})
-                            </div>
-
-                            <div class="stat-progress">
-                                <div
-                                    class="stat-progress-fill"
-                                    style="
-                                        width: ${attempt.percent}%;
-                                        background: ${color};
-                                    "
-                                ></div>
-                            </div>
-
-                            <div class="details">
-                                Дата:
-                                ${attempt.date}
-                            </div>
-                        </div>
-                    `;
-                });
-        }
-    }
+        column.innerHTML = `<h2>${categoryNames[category]}</h2>`;
+    });
 }
 
+function renderStatisticsCard(column, level, attempt) {
+    const color = getStatisticsColor(attempt.percent);
 
-/* =========================================================
-   ОЧИСТКА СТАТИСТИКИ
-   ========================================================= */
+    column.insertAdjacentHTML(
+        "beforeend",
+        `
+            <div class="stat-card">
+                <div class="level-name">
+                    Уровень ${level}
+                </div>
+
+                <div class="percent">
+                    ${attempt.percent}%
+                    (${attempt.correct}/${attempt.total})
+                </div>
+
+                <div class="stat-progress">
+                    <div
+                        class="stat-progress-fill"
+                        style="
+                            width: ${attempt.percent}%;
+                            background: ${color};
+                        "
+                    ></div>
+                </div>
+
+                <div class="details">
+                    Дата: ${attempt.date}
+                </div>
+            </div>
+        `
+    );
+}
+
+function getStatisticsColor(percent) {
+    if (percent >= CONFIG.PASS_PERCENT) {
+        return "#48bb78";
+    }
+
+    if (percent >= 50) {
+        return "#f6e05e";
+    }
+
+    return "#f56565";
+}
 
 function clearStatistics() {
     const confirmed = confirm(
@@ -744,34 +658,31 @@ function clearStatistics() {
 
     if (!confirmed) return;
 
-    localStorage.removeItem("testStats");
-
+    localStorage.removeItem(CONFIG.STORAGE_KEYS.STATS);
     loadStatistics();
 }
 
+/* =========================================================
+   ОБРАБОТЧИКИ СОБЫТИЙ
+   ========================================================= */
+
+function bindStudyPageEvents() {
+    getElement("testBtn")?.addEventListener("click", startTest);
+    getElement("shuffleBtn")?.addEventListener("click", shuffleCards);
+}
+
+function bindStatisticsEvents() {
+    getElement("clearStatisticsBtn")?.addEventListener(
+        "click",
+        clearStatistics
+    );
+}
 
 /* =========================================================
    ИНИЦИАЛИЗАЦИЯ
    ========================================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
-    const testBtn = document.getElementById("testBtn");
-    const shuffleBtn = document.getElementById("shuffleBtn");
-    const clearStatisticsBtn =
-        document.getElementById("clearStatisticsBtn");
-
-    if (testBtn) {
-        testBtn.addEventListener("click", startTest);
-    }
-
-    if (shuffleBtn) {
-        shuffleBtn.addEventListener("click", shuffleCards);
-    }
-
-    if (clearStatisticsBtn) {
-        clearStatisticsBtn.addEventListener(
-            "click",
-            clearStatistics
-        );
-    }
+    bindStudyPageEvents();
+    bindStatisticsEvents();
 });
